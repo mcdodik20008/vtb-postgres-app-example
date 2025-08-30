@@ -1,11 +1,11 @@
-package com.mcdodik.postgresplananalyzer.interceptor
+package com.mcdodik.postgresplananalyzer.dsinterceptor
 
 import com.mcdodik.postgresplananalyzer.model.BoundParam
 import com.mcdodik.postgresplananalyzer.model.BoundQuery
+import com.mcdodik.postgresplananalyzer.model.CaptureContext
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.util.concurrent.ConcurrentHashMap
-import com.mcdodik.postgresplananalyzer.model.CaptureContext
 
 class AdvisorPreparedStatement(
     private val target: PreparedStatement,

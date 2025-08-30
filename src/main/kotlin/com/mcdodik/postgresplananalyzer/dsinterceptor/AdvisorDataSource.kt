@@ -1,10 +1,10 @@
-package com.mcdodik.postgresplananalyzer.interceptor
+package com.mcdodik.postgresplananalyzer.dsinterceptor
 
 import com.mcdodik.postgresplananalyzer.model.BoundQuery
+import java.lang.reflect.Proxy
 import java.sql.Connection
 import java.sql.PreparedStatement
 import javax.sql.DataSource
-import java.lang.reflect.Proxy
 
 class AdvisorDataSource(
     private val target: DataSource,

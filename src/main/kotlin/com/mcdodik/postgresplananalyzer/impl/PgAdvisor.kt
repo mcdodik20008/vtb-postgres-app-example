@@ -7,11 +7,11 @@ import com.mcdodik.postgresplananalyzer.model.AnalysisResult
 import com.mcdodik.postgresplananalyzer.model.BoundParam
 import com.mcdodik.postgresplananalyzer.model.BoundQuery
 import com.mcdodik.postgresplananalyzer.model.CaptureContext
-import com.mcdodik.postgresplananalyzer.model.PlannerSettings
-import javax.sql.DataSource
 import com.mcdodik.postgresplananalyzer.model.Estimator
 import com.mcdodik.postgresplananalyzer.model.Plan
+import com.mcdodik.postgresplananalyzer.model.PlannerSettings
 import java.sql.Types
+import javax.sql.DataSource
 
 class PgAdvisor(
     private val explainDs: DataSource,
