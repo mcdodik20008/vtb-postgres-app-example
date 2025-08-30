@@ -3,19 +3,21 @@ package com.mcdodik.postgresplananalyzer.rules
 
 import com.mcdodik.postgresplananalyzer.api.Advisor
 import com.mcdodik.postgresplananalyzer.impl.PgAdvisor
-import com.mcdodik.postgresplananalyzer.instastructure.PgExplainParser
-import com.mcdodik.postgresplananalyzer.interceptor.AdvisorDataSource
-import com.mcdodik.postgresplananalyzer.model.*
+import com.mcdodik.postgresplananalyzer.dsinterceptor.AdvisorDataSource
+import com.mcdodik.postgresplananalyzer.model.BoundQuery
+import com.mcdodik.postgresplananalyzer.model.PlanNode
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import org.junit.jupiter.api.*
-import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.junit.jupiter.Container
-import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.Duration
 import java.util.concurrent.LinkedBlockingQueue
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.junit.jupiter.Testcontainers
 
 @Testcontainers
 class TwoMillionUsersIndexAdviceIT {
@@ -53,7 +55,8 @@ class TwoMillionUsersIndexAdviceIT {
         // схема + данные
         rawDs.connection.use { c ->
             c.createStatement().use { st ->
-                st.execute("""
+                st.execute(
+                    """
                     drop table if exists users;
                     create table users(
                         id   bigserial primary key,
@@ -65,12 +68,16 @@ class TwoMillionUsersIndexAdviceIT {
                     select 'user-' || g, 18 + (g % 63)
                     from generate_series(1, 2000000) as g;
                     analyze users;
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
         }
     }
 
-    @AfterEach fun tearDown() { wrappedDs.let { }; explainDs.close(); rawDs.close() }
+    @AfterEach
+    fun tearDown() {
+        wrappedDs.let { }; explainDs.close(); rawDs.close()
+    }
 
     /** Вспомогалка: найти первый узел с типом из множества */
     private fun findNode(root: PlanNode, types: Set<String>): PlanNode? {
@@ -89,7 +96,7 @@ class TwoMillionUsersIndexAdviceIT {
 
         wrappedDs.connection.use { conn ->
             conn.prepareStatement("select count(*) from users where age = ?").use { ps ->
-                ps.setInt(1, ageValue)       // важно: в твоём PreparedStatement прокси должен перехватывать setInt
+                ps.setInt(1, ageValue)
                 ps.executeQuery().use { rs -> assertTrue(rs.next()); rs.getLong(1) /* прогрели */ }
             }
         }
@@ -97,22 +104,10 @@ class TwoMillionUsersIndexAdviceIT {
         val capturedBefore = sinkQueue.poll(10, java.util.concurrent.TimeUnit.SECONDS)
         assertNotNull(capturedBefore, "Перехватчик не вернул BoundQuery (до индекса)")
 
-        val advisor: Advisor = PgAdvisor(explainDs, listOf()) // без правил — сейчас проверяем план/стоимость
+        // без правил — сейчас проверяем план/стоимость
+        val advisor: Advisor = PgAdvisor(explainDs, listOf())
         val analysisBefore = advisor.analyze(capturedBefore)
-        val planBefore = PgExplainParser.parseExplainJson(
-            // если PgAdvisor уже возвращает plan/стоимость — можно не парсить отдельно
-            """[{"Plan": {}}]"""
-        )
-        // ↑ строка выше — заглушка, если у тебя PgAdvisor уже вернул план, просто возьми его:
-        // val planBefore = (analysisBefore as? ... )?.plan ?: error("no plan")
-
-        // Используем план из результата:
-        val rootBefore = (analysisBefore /* as AnalysisResult */).let { /* у тебя уже есть plan в нём */
-            // в твоём AnalysisResult есть только cost/estimates и пустые recs — используй свой метод возврата plan.
-            // Если сейчас плана нет в AnalysisResult — просто используй локальную переменную из PgAdvisor.explain(..)
-            // Для наглядности ниже сверим cost:
-            assertTrue(analysisBefore.planCost > 0.0, "Ожидали ненулевой Total Cost до индекса")
-        }
+        assertTrue(analysisBefore.planCost > 0.0, "Ожидали ненулевой Total Cost до индекса")
 
         // ---------- 2) Создаём индекс и делаем тот же запрос ----------
         rawDs.connection.use { c ->
@@ -140,9 +135,5 @@ class TwoMillionUsersIndexAdviceIT {
             analysisAfter.planCost < analysisBefore.planCost,
             "Ожидали падение стоимости: before=${analysisBefore.planCost}, after=${analysisAfter.planCost}"
         )
-
-        // И тип узла должен стать Index/Bitmap
-        // val idxNode = findNode(analysisAfter.plan.root, setOf("Index Scan", "Bitmap Heap Scan"))
-        // assertNotNull(idxNode, "Ожидали Index/Bitmap Scan после индекса")
     }
 }
