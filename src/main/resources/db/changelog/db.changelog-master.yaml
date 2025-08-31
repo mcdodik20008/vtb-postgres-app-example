@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - include:
+      file: db/sql/00_schema.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/sql/01_extensions.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/sql/02_model.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/sql/03_data.sql
+      relativeToChangelogFile: false

@@ -6,6 +6,23 @@ advisor:
     include-plan: true
     compress: false
 
+spring:
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_IP}:5432/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASS}
+    driver-class-name: org.postgresql.Driver
+
+  liquibase:
+    enabled: ${TEST_SCHEMA_IS_ENABLED}
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    contexts: dev
+    liquibase-schema: public
+    default-schema: core
+  docker:
+    compose:
+      enabled: false
+
 management:
   endpoints:
     web:
