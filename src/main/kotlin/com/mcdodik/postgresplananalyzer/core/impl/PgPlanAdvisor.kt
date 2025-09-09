@@ -26,7 +26,6 @@ class PgPlanAdvisor(
     private val rules: List<Rule> = DefaultRuleset.build(),
     private val planner: PlannerSettings = PlannerSettings(),
     private val explainOptions: ExplainOptions = ExplainPresets.ADVISER,
-    // Конвертация cost→ms: t_ms ≈ a * total_cost + b.
     private val costToMsSlopeA: Double = 1.0,
     private val costToMsInterceptB: Double = 0.0,
     private val pageSizeBytes: Int = 8192,

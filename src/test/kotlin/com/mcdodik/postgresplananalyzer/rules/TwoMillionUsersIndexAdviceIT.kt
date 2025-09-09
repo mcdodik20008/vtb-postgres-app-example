@@ -40,7 +40,7 @@ class TwoMillionUsersIndexAdviceIT {
                     "-c",
                     "pg_stat_statements.max=10000",
                     "-c",
-                    "pg_stat_statements.save=off", // чистая статистика на каждый запуск
+                    "pg_stat_statements.save=off",
                 )
 
         private fun hikari(
@@ -139,7 +139,6 @@ class TwoMillionUsersIndexAdviceIT {
         val advisor = PgPlanAdvisor(explainDs, rules = emptyList())
         val before = advisor.examine(capturedBefore)
         assertTrue(before.planCost > 0.0, "Ожидали ненулевой Total Cost до индекса")
-        // sanity: до индекса должен быть Seq Scan
         val seqBefore = findNode(before.plan.root, setOf("Seq Scan"))
         assertNotNull(seqBefore, "Ожидали Seq Scan до индекса")
 
@@ -172,7 +171,6 @@ class TwoMillionUsersIndexAdviceIT {
             )
         assertNotNull(idxAfter, "Ожидали индексный план после создания индекса")
 
-        // --- 3) (бонус) смотрим fingerprint в pg_stat_statements ---
         rawDs.connection.use { c ->
             c
                 .prepareStatement(

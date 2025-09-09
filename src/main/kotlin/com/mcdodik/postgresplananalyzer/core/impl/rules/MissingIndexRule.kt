@@ -7,7 +7,7 @@ import com.mcdodik.postgresplananalyzer.core.model.Priority
 import com.mcdodik.postgresplananalyzer.core.model.Recommendation
 
 class MissingIndexRule(
-    private val minPages: Long = 5_000, // ~ 40 MiB
+    private val minPages: Long = 500,
     private val pageSize: Int = 8192,
     private val maxColsInSuggestion: Int = 3,
 ) : BaseRule("index") {
@@ -28,8 +28,8 @@ class MissingIndexRule(
                     val rel = n.relationName ?: "target table"
                     val eqCols = eq.take(maxColsInSuggestion)
                     val rngCols = rng.take(maxColsInSuggestion)
-                    val likeStarts = likes.filter { !it.second.startsWith("%") } // только 'abc%'
-                    val likeLeading = likes.filter { it.second.startsWith("%") } // '%abc'
+                    val likeStarts = likes.filter { !it.second.startsWith("%") }
+                    val likeLeading = likes.filter { it.second.startsWith("%") }
 
                     val sb = StringBuilder("Полный скан ~$pg страниц. Рекомендации:\n")
                     if (eqCols.isNotEmpty()) {
