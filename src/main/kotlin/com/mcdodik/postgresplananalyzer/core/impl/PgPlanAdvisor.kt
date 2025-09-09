@@ -73,10 +73,8 @@ class PgPlanAdvisor(
         walk(plan.root) { n ->
             val t = n.nodeType.lowercase()
 
-            // IO: учитываем только сканы (seq/index/bitmap/index-only)
             if (t.contains("scan")) scannedBytes += nodeBytes(n)
 
-            // Память: грубые верхние оценки для Sort/Hash
             if (t == "sort") {
                 memPeak += nodeBytes(n) * 2L
             } else if (t.contains("hash")) {
@@ -118,7 +116,6 @@ class PgPlanAdvisor(
         }
     }
 
-    // ---- Исполнение EXPLAIN и парсинг ----
     private fun explain(
         q: BoundQuery,
         opts: ExplainOptions,

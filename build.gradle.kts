@@ -1,4 +1,5 @@
 plugins {
+    application
     kotlin("jvm") version "1.9.25"
     kotlin("plugin.spring") version "1.9.25"
     id("org.springframework.boot") version "3.5.5"
@@ -23,6 +24,10 @@ configurations {
 
 repositories {
     mavenCentral()
+}
+
+application {
+    mainClass.set("com.mcdodik.postgresplananalyzer.cli.MainKt")
 }
 
 dependencies {
@@ -66,4 +71,37 @@ kotlin {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+fun prop(
+    name: String,
+    default: String = "",
+): String = (findProperty(name) as String?) ?: System.getenv(name.uppercase()) ?: default
+
+tasks.register<JavaExec>("planAnalyze") {
+    group = "verification"
+    description = "Run Postgres Plan Advisor against SQL corpus"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set(application.mainClass)
+
+    // параметры берём из -P... или ENV
+    val argsList =
+        listOf(
+            "--jdbc-url",
+            prop("dbUrl", "jdbc:postgresql://localhost:5432/postgres"),
+            "--user",
+            prop("dbUser", "postgres"),
+            "--password",
+            prop("dbPass", "postgres"),
+            "--sql-glob",
+            prop("sqlGlob", "src/main/resources/sql/**/*.sql"),
+            "--out-dir",
+            prop("outDir", "$buildDir/reports/plan-analyzer"),
+            "--fail-on",
+            prop("failOn", "NONE"), // NONE|LOW|MEDIUM|HIGH|CRITICAL
+        )
+    args = argsList
+
+    // чтобы Ctrl+C корректно прерывал
+    isIgnoreExitValue = false
 }

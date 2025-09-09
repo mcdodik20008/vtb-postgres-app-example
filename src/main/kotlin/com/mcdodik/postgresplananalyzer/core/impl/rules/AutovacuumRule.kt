@@ -7,7 +7,7 @@ import com.mcdodik.postgresplananalyzer.core.model.Priority
 import com.mcdodik.postgresplananalyzer.core.model.Recommendation
 
 class AutovacuumRule(
-    private val bigPages: Long = 200_000, // ~ 200k * 8KiB ≈ 1.6 GiB
+    private val bigPages: Long = 200_000, // 200k * 8KiB = 1.6 GiB
     private val pageSize: Int = 8192,
 ) : BaseRule("autovacuum") {
     override fun analyze(

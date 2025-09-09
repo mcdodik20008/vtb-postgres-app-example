@@ -9,7 +9,6 @@ object PgExplainParser {
     private val mapper = jacksonObjectMapper()
 
     fun parseExplainJson(json: String): Plan {
-        // EXPLAIN JSON в PG приходит как массив из одного объекта с ключом "Plan"
         val arr = mapper.readTree(json)
         val rootObj =
             when {
@@ -41,7 +40,6 @@ object PgExplainParser {
         )
     }
 
-    // Helpers для ключей с пробелами
     private fun JsonNode.optText(field: String): String? = this.get(field)?.takeIf { !it.isNull }?.asText()
 
     private fun JsonNode.optDouble(field: String): Double? = this.get(field)?.takeIf { !it.isNull }?.asDouble()

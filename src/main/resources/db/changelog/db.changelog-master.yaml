@@ -11,3 +11,6 @@ databaseChangeLog:
   - include:
       file: db/sql/03_data.sql
       relativeToChangelogFile: false
+  - include:
+      file: db/sql/04_backup_map_server_base.sql
+      relativeToChangelogFile: false

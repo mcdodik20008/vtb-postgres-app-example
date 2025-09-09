@@ -9,7 +9,6 @@ import com.mcdodik.postgresplananalyzer.core.model.Recommendation
 abstract class BaseRule(
     private val category: String,
 ) : Rule {
-    // ==== обход дерева ====
     protected inline fun walk(
         root: PlanNode,
         crossinline fn: (PlanNode) -> Unit,
@@ -41,7 +40,6 @@ abstract class BaseRule(
         return false
     }
 
-    // ==== метрики узла ====
     protected fun nodeBytes(n: PlanNode): Long {
         val estimatedRows = if (n.estimatedRows > 0) n.estimatedRows else 0.0
         val planWidth = if (n.planWidth > 0) n.planWidth else 1
@@ -53,7 +51,6 @@ abstract class BaseRule(
         pageSize: Int = 8192,
     ): Long = nodeBytes(n) / pageSize
 
-    // ==== чтение настроек ====
     protected fun workMemBytes(settings: PlannerSettings): Long = settings.workMemMb.toLong() * 1024 * 1024
 
     protected fun humanBytes(b: Long): String =
@@ -64,7 +61,6 @@ abstract class BaseRule(
             else -> "$b B"
         }
 
-    // ==== парсинг предикатов (простые эвристики) ====
     private val reEq = Regex("""(?i)\b([a-zA-Z_][\w.]*)\s*=\s*(?:\$\d+|\?|\d+|'[^']*')""")
     private val reRng = Regex("""(?i)\b([a-zA-Z_][\w.]*)\s*(?:>=|<=|>|<)\s*(?:\$\d+|\?|\d+)""")
     private val reLike = Regex("""(?i)\b([a-zA-Z_][\w.]*)\s+LIKE\s+'([^']+)'""")
